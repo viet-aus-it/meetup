@@ -1,0 +1,11 @@
+groups:
+  - name: main
+    rules:
+      - alert: too_many_holes
+        expr: gopher_holes_available > 5
+        for: 30s
+        labels:
+          serverity: warning
+        annotations:
+          summary: "too many holes"
+          description: "holes"

@@ -1,0 +1,39 @@
+# example docker-compose, just for testing
+# ---------------------
+version: '2.1'
+services:
+  holes:
+    build: "."
+    entrypoint: ["/app"]
+    ports:
+      - "8484:8484"
+    healthcheck:
+      test: ["CMD-SHELL", "wget localhost:8484/metrics -q -O - > /dev/null 2>&1"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+  prometheus:
+    image: "prom/prometheus:v2.12.0"
+    ports:
+      - "9090:9090"
+    volumes:
+      - "./resources/prometheus.sample.yml:/etc/prometheus/prometheus.yml"
+      - "./resources/alert.rules:/etc/prometheus/alert.rules"
+    depends_on:
+      holes: { condition: service_healthy }
+    #      - holes
+    healthcheck:
+      test: ["CMD-SHELL", "wget localhost:9090/-/healthy -q -O - > /dev/null 2>&1"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+  mailhog:
+    image: "mailhog/mailhog"
+    ports:
+      - "8025:8025"
+  alertmanager:
+    image: "prom/alertmanager"
+    ports:
+      - "9093:9093"
+    volumes:
+      - "./resources/alertmanager.sample.yaml:/etc/alertmanager/alertmanager.yml"
